@@ -34,9 +34,6 @@
     <build>
         <finalName>simpleframework</finalName>
         <plugins>
-            <plugin>
-                
-            </plugin>
         </plugins>
     </build>
 
