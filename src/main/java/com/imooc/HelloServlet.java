@@ -23,6 +23,6 @@ public class HelloServlet extends HttpServlet {
         String name = "我的简易框架";
         req .setAttribute("name",name);
         req.getRequestDispatcher("/WEB-INF/jsp/hello.jsp").forward(req,resp);
-        EnumSet
+
     }
 }
