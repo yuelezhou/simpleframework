@@ -28,7 +28,9 @@ public class ClassUtil {
          File packageDirectory = new File(url.getPath());
          extractClassFile(classSet,packageDirectory,packageName);
       }
-      return null;
+      //TODO 此处可以加入针对其他类型资源的处理
+
+      return classSet;
    }
 
    private static void extractClassFile(Set<Class<?>> emptyClassSet, File fileSource, String packageName) {
