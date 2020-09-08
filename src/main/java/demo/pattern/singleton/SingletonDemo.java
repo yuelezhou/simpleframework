@@ -18,5 +18,6 @@ public class SingletonDemo {
         Constructor constructor = clazz.getDeclaredConstructor();
         constructor.setAccessible(true);
         System.out.println(constructor.newInstance());
+        //todo 5-5 13:02
     }
 }
