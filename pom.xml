@@ -34,7 +34,8 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
+            <version>1.16.10</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
@@ -51,25 +52,25 @@
             <version>2.12.1</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+
 
     </dependencies>
 
     <build>
         <finalName>simpleframework</finalName>
         <plugins>
-<!--            <plugin>-->
-<!--                <dependencies>-->
-<!--                    <dependency>-->
-<!--                        <groupId>org.projectlombok</groupId>-->
-<!--                        <artifactId>lombok-maven</artifactId>-->
-<!--                        <version>1.18.12.0</version>-->
-<!--                        <type>pom</type>-->
-<!--                    </dependency>-->
-<!--                </dependencies>-->
-
-<!--            </plugin>-->
-            <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok-maven -->
-
+            <plugin>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok-maven-plugin</artifactId>
+                <version>1.16.6.1</version>
+            </plugin>
         </plugins>
     </build>
 

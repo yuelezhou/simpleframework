@@ -3,6 +3,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,6 +22,7 @@ public class ClassUtil {
       URL url = classLoader.getResource(packageName.replace(".","/"));
       if (url == null){
          log.warn("unable to retrieve anything from package:" + packageName);
+
          return null;
       }
        //3依据不同的资源类型,采用不同的方式获取资源的集合
@@ -47,7 +51,7 @@ public class ClassUtil {
                String absoluteFilePath = file.getAbsolutePath();
                if (absoluteFilePath.endsWith(".class")){
                   //若是class文件,则直接加载
-                  addToClassSet(absoluteFilePath);
+                  addToClassSet(absoluteFilePath,emptyClassSet);
                }
             }
             return false;
@@ -55,7 +59,7 @@ public class ClassUtil {
       });
    }
 
-   private static void addToClassSet(String absoluteFilePath) {
+   private static void addToClassSet(String absoluteFilePath,Set<Class<?>> emptyClassSet) {
       //1.从class文件的绝对路径里提取出了包含了package的类名
       //如 a/b/c/d 需要换成a.b.c.e
       absoluteFilePath.replace(File.separator,".");
@@ -84,4 +88,39 @@ public class ClassUtil {
    public static ClassLoader getClassLoader(){
       return Thread.currentThread().getContextClassLoader();
    }
+
+
+
+   public static <T> T newInstance(Class<?> clazz,boolean accessible){
+       /**
+        * create by: zhoule
+        * description: 返回类的实例化
+        * create time: 16:11 2020-09-12
+        * @param clazz
+        * @param accessible
+        * @return T
+        **/
+
+       try {
+           Constructor constructor = clazz.getDeclaredConstructor();
+           constructor.setAccessible(accessible);
+           return  (T)constructor.newInstance();
+       } catch (Exception e) {
+           log.error("newInstance error",e);
+           throw new RuntimeException(e);
+       }
+
+   }
+
+   public static void setField(Field field,Object target,Object value,boolean accessible){
+
+       field.setAccessible(accessible);
+       try {
+           field.set(target,value);
+       } catch (IllegalAccessException e) {
+           log.error("setField error",e);
+           throw new RuntimeException(e);
+       }
+   }
+
 }
