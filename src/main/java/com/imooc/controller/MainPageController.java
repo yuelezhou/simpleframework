@@ -1,6 +1,10 @@
 package com.imooc.controller;
 
+import com.imooc.dao.dto.MainPageInfoDTO;
+import com.imooc.dao.dto.Result;
+import com.imooc.service.combine.HeadLineShopCategoryCombineServcie;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,4 +23,8 @@ public class MainPageController {
     public Result<MainPageInfoDTO> getMainPageInfo(HttpServletRequest request, HttpServletResponse response){
         return headLineShopCategoryCombineServcie.getMainPageInfo();
     }
+
+
+
+
 }
