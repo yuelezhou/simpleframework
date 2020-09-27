@@ -1,3 +1,4 @@
+# chap6-2
 ## 全面掌握核心接口和类
 解决了关键的问题:将对象之间的关系转而用配置来管理
 * 依赖注入-依赖关系在Spring的IoC容器中管理
@@ -21,13 +22,22 @@ Bean是Spring的一等公民
       * globalsession #
 * 懒加载lazy-init(@Lazy):决定Bean实例是否延迟加载
 * 首选primary(@Primary):设置为true的bean会是优先的实现类
-* factory-bean和factory-method(@Configuration和@Bean)
+* factory-bean和factory-method(@Configuration和@Bean//没讲括号里的)
 
 
 ##　容器初始化要做的事情（主要脉络）
-＞　＊　配置文件　－＞（读取）－＞
-　　＊  Ｒｅｓｏｕｒｃｅ　－＞解析－＞
-　　＊　ＢｅａｎＤｅｆｉｎｉｔｉｏｎ　－＞注册－＞
-　　＊　容器
-＊　解析配置
-＊　定位与注册对象
+> 配置文件->（动作）读取->Resource->（动作）解析->BeanDefinition->（动作）注册->容器
+
+* 解析配置
+* 定位与注册对象
+
+
+## 框架中类/接口的讲解
+* BeanDefinition - 描述了类的实例
+* AttributeAccessor - 从一个任意对象访问元数据的通用协议
+* BeanMetadataElement - 返回Bean元数据的Configuration source的接口
+* AbstractBeanDefinition - 实现BeanDefinition的基类（有具体方法，也有抽象方法）
+    * <b>GenericBeanDefinition(主要用这个)</b>，RootBeanDefinition，ChildBeanDefinition 三个子类
+    * Spring中 通过设置parent来设置实际的继承关系
+    
+
