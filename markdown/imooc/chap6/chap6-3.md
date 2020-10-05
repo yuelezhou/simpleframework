@@ -11,8 +11,10 @@
 
 _____________
 ##　BeanFactory接口
-访问Spring bean 容器的基础接口，Bean容器的基本客户视角，
+访问Spring bean容器的基础接口，客户视角的Bean容器，
 该接口被持有许多BeanDefinition的对象所实现
+通过bean Definition（singleton或prototype），可以返回不同的实例
+从configuration中加载bean definition
 
 * &的作用，用户得到工厂本身(FactoryBeanPrefix = &)
 >   如果 userFactoryBean是一个FactoryBean

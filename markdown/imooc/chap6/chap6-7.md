@@ -12,3 +12,12 @@
 * PropertiesBeanDefinitionReader
 * XmlBeanDefinitionReader
 * AnnotatedBeanDefinition
+
+## 框架源码
+* XmlBeanDefinitionReader
+    * loadBeanDefinition方法的实现
+        * ThreadLocal resourcesCurrentlyBeingLoaded的用法
+        * ThreadLocalMap 的用法
+        * InputStream 与 InputSource的使用
+        
+    
