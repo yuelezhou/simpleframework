@@ -1,0 +1,51 @@
+@startuml
+
+==转换beanName ==
+
+AbstractBeanFactory -> AbstractBeanFactory : transformBeanName() -> String
+Note left:传入参数可能是别名，也可能是FactoryBean
+==尝试从缓存中加载单例 ==
+
+AbstractBeanFactory -> AbstractBeanFactory : getSingleton() -> Object sharedInstance
+Note left:传入参数可能是别名，也可能是FactoryBean
+==bean的实例化==
+
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance -> Object bean
+Note left:
+==4/原型模式的依赖检查==
+alt  isPrototypeCurrentlyinCreation (beanName)
+AbstractBeanFactory -> AbstractBeanFactory : throw Exception
+end
+==5/检测parentBeanFactory==
+AbstractBeanFactory -> AbstractBeanFactory : getParentBeanFactory() -> BeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : 判断，如果存在父类Bean，则返回父类BeanDefinition
+==6 将存储XML配置文件的GerneicBeanDefinition 转换为 RootBeanDefinition==
+AbstractBeanFactory -> AbstractBeanFactory : getMergedLocalBeanDefinition(beanName) -> RootBeanDefinition
+AbstractBeanFactory -> AbstractBeanFactory : checkMergedBeanDefinition (mbd , beanName , args)
+==7 寻找依赖==
+AbstractBeanFactory -> RootBeanDefinition : getDependsOn() -> String[]
+loop String : String[]
+AbstractBeanFactory -> AbstractBeanFactory : getBean(dependsOnBean)
+AbstractBeanFactory -> AbstractBeanFactory : reg 工s terDependentBean(dependsOnBean,beanName);
+end
+
+==8/针对不同的scope进行bean的创建==
+
+==类型转换==
+AbstractBeanFactory -> AbstractBeanFactory : getParentBeanFactory() -> BeanFactory parentBeanFactory
+alt parentBeanFactory != null && !containsBeanDefinition(beanName))
+AbstractBeanFactory -> AbstractBeanFactory : originalBeanName(name)
+alt parentBeanFactory instanceof AbstractBeanFactory
+AbstractBeanFactory -> AbstractBeanFactory : ((AbstractBeanFactory) parentBeanFactory).doGetBean()
+else args != null
+AbstractBeanFactory -> AbstractBeanFactory : parentBeanFactory.getBean(nameToLookup, args)
+else requiredType != null
+AbstractBeanFactory -> AbstractBeanFactory : parentBeanFactory.getBean(nameToLookup, requiredType)
+else
+AbstractBeanFactory -> AbstractBeanFactory : (T) parentBeanFactory.getBean(nameToLookup)
+end
+AbstractBeanFactory -> AbstractBeanFactory : markBeanAsCreated(beanName) -> void
+end
+
+
+@enduml
