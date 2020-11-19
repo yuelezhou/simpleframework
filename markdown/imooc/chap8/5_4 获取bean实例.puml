@@ -1,0 +1,27 @@
+@startuml
+==5.4 获取单例 getSingleton(String beanName ObjectFactory singletonFactory)==
+==1/检查缓存是否已经加载过==
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : this.singletonObjects.get(beanName) -> Object
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : beforeSingletonCreation(beanName) -> void
+==2/若没有加载，则记录正在加载的状态，3/加载前记录加载状态==
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry.beforeSingletonCreation : singletonsCurrentlyInCreation.add(beanName)
+alt this.suppressedExceptions == null
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : this.suppressedExceptions = new LinkedHashSet<>();
+end
+==4/通过传入的ObjectFactory 实例化bean==
+DefaultSingletonBeanRegistry -> ObjectFactory : getObject()
+==5/加载单例后的处理方法调用==
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry: afterSingletonCreation(String beanName)
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry.beforeSingletonCreation : singletonsCurrentlyInCreation.remove(beanName)
+==6/将结果记录至缓存，并清除各种状态==
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : addSingleton(String, Object)
+note left
+this.
+1/singletonObjects.put
+2/singletonFactories.remove
+3/earlySingletonObjects.remove
+4/registeredSingletons.add
+end note
+==7/返回处理结果==
+return object
+@enduml

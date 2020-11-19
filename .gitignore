@@ -36,12 +36,10 @@ hs_err_pid*
 .idea/**/dictionaries
 .idea/**/shelf
 .idea/
-
 # Generated files
 .idea/**/contentModel.xml
 
 # Sensitive or high-churn files
-.idea/**
 .idea/**/dataSources/
 .idea/**/dataSources.ids
 .idea/**/dataSources.local.xml
@@ -101,3 +99,14 @@ fabric.properties
 target/
 
 
+将删除 .DS_Store
+将删除 markdown/.DS_Store
+将删除 markdown/imooc/.DS_Store
+将删除 "markdown/spring\346\272\220\347\240\201/.DS_Store"
+将删除 src/.DS_Store
+将删除 src/main/.DS_Store
+将删除 src/main/java/.DS_Store
+将删除 src/main/java/com/.DS_Store
+将删除 src/main/java/com/imooc/entity/
+将删除 src/main/java/demo/reflect/
+将删除 src/main/resources/

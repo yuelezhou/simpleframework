@@ -1,0 +1,29 @@
+@startuml
+==AbstractAutowireCapableBeanFactory.createBean(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)==
+note left
+该类的核心方法，创建Bean实例，填充属性
+end note
+==1/根据设置的class属性或者根据完成的具体步骤及功能==
+AbstractAutowireCapableBeanFactory -> AbstractBeanFactory : resolveBeanClass() -> Class<?>
+note left
+System.getSecurityManager()是个啥 //
+从rootbeanDefinition中解析Class
+end note
+==2/对override方法进行标记及验证==
+AbstractAutowireCapableBeanFactory -> AbstractBeanDefinition : prepareMethodOverrides()
+loop AbstractBeanDefinition.getMethodOverrides()
+AbstractBeanDefinition -> AbstractBeanDefinition : prepareMethodOverride()
+end
+==3/应用初始化前的后处理器，解析指定bean是否存在初始化前的短路操作==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : resolveBeforeInstantiation(beanName, mbdToUse) ->Object bean
+alt bean !=null
+return bean
+end
+note left
+Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+Apply before-instantiation post-processors
+end note
+==4/创建bean==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : doCreateBean(beanName, mbdToUse, args) -> Object beanInstance
+return beanInstance
+@enduml

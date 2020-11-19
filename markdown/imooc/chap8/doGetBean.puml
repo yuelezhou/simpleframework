@@ -1,17 +1,49 @@
 @startuml
 
-==转换beanName ==
+==1/转换beanName ==
 
 AbstractBeanFactory -> AbstractBeanFactory : transformBeanName() -> String
 Note left:传入参数可能是别名，也可能是FactoryBean
-==尝试从缓存中加载单例 ==
+==2/尝试从缓存中加载单例 ==
 
-AbstractBeanFactory -> AbstractBeanFactory : getSingleton() -> Object sharedInstance
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : getSingleton() -> Object sharedInstance
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : this.singletonObjects.get()-> Object singletonObject
+Note left: 1级缓存 ：完整的单例Bean
+alt singletonObject == null && isSingletonCurrentlyInCreation(beanName)
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : this.earlySingletonObjects.get(beanName) -> Object singletonObject
+Note left: 2级缓存  单例Bean未赋值的单例Bean
+alt singletonObject == null && allowEarlyReference
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : this.singletonFactories.get(beanName) -> Object singleFactory
+Note left: 3级缓存  单例Bean的FactoryBean
+alt singletonFactory != null
+DefaultSingletonBeanRegistry -> DefaultSingletonBeanRegistry : singleFactory.getObject() -> Object
+end
+end
+end
 Note left:传入参数可能是别名，也可能是FactoryBean
-==bean的实例化==
-
+==3/bean的实例化==
+Note left: 如果是实例Bean则直接返回，如果是工厂Bean则返回对应的实例
 AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance -> Object bean
-Note left:
+alt BeanFactoryUtils.isFactoryDereference(name) && !(beanInstance instanceof FactoryBean)
+AbstractBeanFactory.getObjectForBeanInstance -> AbstractBeanFactory.getObjectForBeanInstance : throw Exception
+Note left: 如果Bean的名字带&，但是不属于FactoryBean，抛出异常
+end
+AbstractBeanFactory.getObjectForBeanInstance -> AbstractBeanFactory.getObjectForBeanInstance : 对BeanInstance不做任何处理直接返回
+alt mbd == null && containsBeanDefinition(beanName) //缓存BeanDefinition
+AbstractBeanFactory.getObjectForBeanInstance -> AbstractBeanFactory.getObjectForBeanInstance : getMergedLocalBeanDefinitio() ->RootBeanDefinition mbd
+Note left
+1/从AbstractBeanFactory.mergedBeanDefinitions中获取，如果返回值有，就返回，如果没有就getBeanDefinition(beanName)
+2/用返回值BeanDefinition和BeanName 执行 getMergedBeanDefinition() 返回top-level的RootBeanDefinition,如果传入的BeanDefinition是子类BD的话，和父类合并
+3/getMergedBeanDefinition() 返回BeanDefinition对应的RBD，如过传入的是子BD，就和父BD合并
+3.1 先从缓存中获取，如果存在，就返回
+3.2 如果取不到，并且从BD中没有父类的名字，那么将bd转换成rbd，返回
+3.3 如果将parentBeanName存在，且不等于BeanName,递归调用getMergedBeanDefinitiont(pbn),
+3.4 将beanName和pbd放入mergedBeanDefinition
+end note
+end
+AbstractBeanFactory.getObjectForBeanInstance -> AbstractBeanFactory.getObjectForBeanInstance : getObjectFromFactoryBean(bn,mdb,标志)
+note left: 1/核心方法是factory.getObject() 2/ 后处理程序
+
 ==4/原型模式的依赖检查==
 alt  isPrototypeCurrentlyinCreation (beanName)
 AbstractBeanFactory -> AbstractBeanFactory : throw Exception
@@ -28,10 +60,12 @@ loop String : String[]
 AbstractBeanFactory -> AbstractBeanFactory : getBean(dependsOnBean)
 AbstractBeanFactory -> AbstractBeanFactory : registerDependentBean(dependsOnBean,beanName);
 end
-
 ==8/针对不同的scope进行bean的创建==
 alt mbd.isSingleton
-AbstractBeanFactory -> AbstractBeanFactory : getSingleton(beanName,new ObjectFactory{createBean(beanName,mbd,args)})
+AbstractBeanFactory -> DefaultSingletonBeanRegistry : getSingleton(beanName,new ObjectFactory{createBean(beanName,mbd,args)})
+note left
+创建Bean
+end note
 AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance()-> bean
 else  mbd.isprototype()
 AbstractBeanFactory -> AbstractBeanFactory : createBean()-> Object
