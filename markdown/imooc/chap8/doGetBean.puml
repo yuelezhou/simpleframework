@@ -26,26 +26,23 @@ AbstractBeanFactory -> AbstractBeanFactory : checkMergedBeanDefinition (mbd , be
 AbstractBeanFactory -> RootBeanDefinition : getDependsOn() -> String[]
 loop String : String[]
 AbstractBeanFactory -> AbstractBeanFactory : getBean(dependsOnBean)
-AbstractBeanFactory -> AbstractBeanFactory : reg 工s terDependentBean(dependsOnBean,beanName);
+AbstractBeanFactory -> AbstractBeanFactory : registerDependentBean(dependsOnBean,beanName);
 end
 
 ==8/针对不同的scope进行bean的创建==
-
-==类型转换==
-AbstractBeanFactory -> AbstractBeanFactory : getParentBeanFactory() -> BeanFactory parentBeanFactory
-alt parentBeanFactory != null && !containsBeanDefinition(beanName))
-AbstractBeanFactory -> AbstractBeanFactory : originalBeanName(name)
-alt parentBeanFactory instanceof AbstractBeanFactory
-AbstractBeanFactory -> AbstractBeanFactory : ((AbstractBeanFactory) parentBeanFactory).doGetBean()
-else args != null
-AbstractBeanFactory -> AbstractBeanFactory : parentBeanFactory.getBean(nameToLookup, args)
-else requiredType != null
-AbstractBeanFactory -> AbstractBeanFactory : parentBeanFactory.getBean(nameToLookup, requiredType)
+alt mbd.isSingleton
+AbstractBeanFactory -> AbstractBeanFactory : getSingleton(beanName,new ObjectFactory{createBean(beanName,mbd,args)})
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance()-> bean
+else  mbd.isprototype()
+AbstractBeanFactory -> AbstractBeanFactory : createBean()-> Object
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance()-> bean
 else
-AbstractBeanFactory -> AbstractBeanFactory : (T) parentBeanFactory.getBean(nameToLookup)
+AbstractBeanFactory -> AbstractBeanFactory : createBean -> T
+AbstractBeanFactory -> AbstractBeanFactory : getObjectForBeanInstance()-> bean
 end
-AbstractBeanFactory -> AbstractBeanFactory : markBeanAsCreated(beanName) -> void
-end
+==9/类型转换==
+AbstractBeanFactory -> AbstractBeanFactory : return (T) bean
+
 
 
 @enduml
