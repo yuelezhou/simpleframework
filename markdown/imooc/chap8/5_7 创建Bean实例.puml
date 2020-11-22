@@ -16,7 +16,8 @@ end
 ==3/MergedBeanDefinitionPostProcessor==
 AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory :applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName)
 note left
-Allow post-processors to modify the merged bean definition
+1/Allow post-processors to modify the merged bean definition:处理@Value，@Autowired
+2/ spring视频8-6 AutowierdAnnotationBeanPostProcessor.java
 end note
 ==4/依赖处理==
 alt (mbd.isSingleton() && this.allowCircularReferences &&isSingletonCurrentlyInCreation(beanName))
@@ -29,9 +30,147 @@ AbstractAutowireCapableBeanFactory -> DefaultSingletonBeanRegistry : initializeB
 alt 同4 (mbd.isSingleton() && this.allowCircularReferences &&isSingletonCurrentlyInCreation(beanName))
 
 end
-
 ==7/注册DisposableBean==
 AbstractAutowireCapableBeanFactory -> AbstractBeanFactroy : registerDisposableBeanIfNecessary(beanName, bean, mbd);
+note left
+注册Bean的销毁逻辑
+end note
 ==8/完成创建并返回==
 return exposedObject
+@enduml
+
+@startuml
+== AbstractAutowireCapableBeanFactory.createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args)==
+==5.7.1 创建Bean的实例==
+==1如果RootBeanDefinition中存在factoryMethodName属性，spring尝试用initiateUsingFactoryMethod 生成bean实例==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : obtainFromSupplier(instanceSupplier, beanName)
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : instantiateUsingFactoryMethod(beanName, mbd, args)
+==2解析构造函数 并进行构造函数的实例化==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : autowireConstructor(beanName, mbd, null, null)
+
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : instantiateBean(beanName, mbd)
+@enduml
+
+@startuml
+==autowireConstructor(String beanName, RootBeanDefinition mbd,@Nullable Constructor<?>[] chosenCtors, @Nullable Object[] explicitArgs)==
+==1/ 构造函数参数的确定==
+this.autowireConstructor -> this.autowireConstructor : notes
+note left
+ConstructorResolver.java
+关键参数：
+end note
+==1.1/根据explicit显示参数判断==
+this.autowireConstructor -> this.autowireConstructor :argsToUse = explicitArgs
+==1.2.1缓存中获取==
+alt
+this.autowireConstructor -> RootBeanDefinition : constructorToUse = this.resolvedConstructorOrFactroyMethod(获取变量)
+alt constructorToUse != null && mbd.constructorArgumentsResolved -- (boolean值)
+this.autowireConstructor -> RootBeanDefinition : argsToUse = this.resolvedConstructorArguments(获取变量) -> argsToResolve
+end
+end
+alt argsToResolve != null
+this.autowireConstructor -> this.autowireConstructor :resolvePreParedArguments(beanName,mbd,bw,constructorToUse,argsToUse) -> argsToUse
+end
+==1.2.2没有缓存，从配置文件获取==
+this.autowireConstructor -> this.autowireConstructor : 5.1中没有了
+==2/构造函数的确定==
+alt mbd.isNonPublicAccessAllowed
+this.autowireConstructor -> RootBeanDefinition : getDeclaredConstructors()
+else
+this.autowireConstructor -> RootBeanDefinition : getConstructors()
+end
+loop candidate
+alt 按照参数个数对构造函数进行筛选
+this.autowireConstructor -> this.autowireConstructor : continue or break
+end
+==3/根据对应的构造函数转换对应的参数类型==
+alt 有参数
+this.autowireConstructor -> this.autowireConstructor : createArgumentArray(beanName, mbd, resolvedValues, bw, paramTypes, paramNames,getUserDeclaredConstructor(candidate), autowiring, candidates.length == 1) ->argsHolder
+else 无参数
+this.autowireConstructor -> this.autowireConstructor : argsHolder = 无参数
+end
+==4/构造函数不确定性的验证==
+this.autowireConstructor -> this.autowireConstructor : candidate -> constructorToUse ,argsHolder ->argsToUse
+note left
+探测是否有不确定性的构造函数，例如不同构造函数的参数为父子关系
+end note
+end
+==5/根据实例化策略及得到的构造函数及构造函数参数实例化bean==
+this.autowireConstructor -> InstantiationStrategy : instantiate(mbd, beanName, this.beanFactory, constructorToUse, argsToUse)
+@enduml
+
+@startuml
+==SimpleInstantiationStrategy.instantiate(RootBeanDefinition bd, @Nullable String beanName, BeanFactory owner,final Constructor<?> ctor, Object... args)==
+SimpleInstantiationStrategy -> SimpleInstantiationStrategy : 简介
+note left
+5.7.1节 第3点
+end note
+==1==
+alt mbd.getMethodOverrides().isEmpty()
+SimpleInstantiationStrategy -> BeanUtil : instantiateClass(constructorToUse)
+note left
+Construcor.newInstance or  JVM反射生成
+end note
+else
+SimpleInstantiationStrategy -> SimpleInstantiationStrategy : instantiateWithMethodInjection(bd, beanName, owner, ctor, args)
+note left
+使用cglib的代理，还没深究
+end note
+end
+====
+@enduml
+
+@startuml
+==populateBean(String beanName, RootBeanDefinition mbd, @Nullable BeanWrapper bw)==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : 简介
+==1InstantiationAwareBeanPostProcessor处理器的postProcessAfterinstantiation 函数的应用，此函数可以控制程序是否继续进行属性填充。==
+alt !mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()
+loop BeanPostProcessor bp : getBeanPostProcessors()
+alt !ibp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName)
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : return
+note left
+如果用户已经注入，则返回
+在设置属性前去修改Bean状态，也可以控制是否继续给Bean设置属性值
+end note
+end
+end
+end
+==2根据注人类型（ byName/byType),提取依赖的bean,并统一存入PropertyValues中==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : autowireByName(beanName, mbd, bw, newPvs)
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : autowireByType(beanName, mbd, bw, newPvs)
+note left
+@Autowired @Value 不再这里进行注入
+end note
+==3应用InstantiationAwareBeanPostProcessor处理器的postProcessPropertyValues方法==
+loop BeanPostProcessor bp : getBeanPostProcessors()
+AbstractAutowireCapableBeanFactory -> InstantiationAwareBeanPostProcessor : postProcessProperties(pvs, bw.getWrappedInstance(), beanName)
+note left : 在此处注入@Autowired属性,反射注入,File.set
+alt pvsToUse == null
+AbstractAutowireCapableBeanFactory -> InstantiationAwareBeanPostProcessor : postProcessPropertyValues(pvs, filteredPds, bw.getWrappedInstance(), beanName)
+end
+end
+note left
+对解析完但为设置的属性进行再处理
+是否进行依赖检查
+end note
+==4将所有PropertyValues 中的属性填充至BeanWrapper中==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : applyPropertyValues(beanName, mbd, bw, pvs)
+note left
+end note
+@enduml
+
+@startuml
+==initializeBean(String beanName, Object bean, @Nullable RootBeanDefinition mbd)==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : 简介
+==1/激活Aware方法==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : invokeAwareMethods(beanName, bean)
+==2.1/前处理器的应用==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName)
+==3/激活自定义的init方法==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : invokeInitMethods(beanName, wrappedBean, mbd)
+==2.2/后处理器的应用==
+AbstractAutowireCapableBeanFactory -> AbstractAutowireCapableBeanFactory : applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName)
+note left
+正规军 BeanPostProcessor的调用
+end note
 @enduml
