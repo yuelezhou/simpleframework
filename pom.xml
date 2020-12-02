@@ -63,6 +63,15 @@
             <version>1.7.25</version>
         </dependency>
 
+        <!-- 9-7 CGLib-->
+        <!-- https://mvnrepository.com/artifact/cglib/cglib -->
+        <dependency>
+            <groupId>cglib</groupId>
+            <artifactId>cglib</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
+
 
 
     </dependencies>
