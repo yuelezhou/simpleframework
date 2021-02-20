@@ -27,22 +27,77 @@ public class AspectWeaver {
     public void doAop(){
         //1.获取所有的切面类
         Set<Class<?>> aspectSet = beanContainer.getClassesByAnnotation(Aspect.class);
-        //2.将切面类按照不同的织入目标进行切分
-        Map<Class<? extends Annotation>, List<AspectInfo>> categorizedMap = new HashMap<>();
-        if (ValidationUtil.isEmpty(aspectSet)){return;}
-        for (Class<?> aspectClass : aspectSet){
-            if (varifyAspect(aspectClass)){
-                categorizeAspect(categorizedMap,aspectClass);
-            }else {
-                throw new RuntimeException("@Aspect and @Order have not been added to the Aspect class," +
-                        "or Aspect class not extend from DefaultAspect ,or the value in Aspect Tag equals @Aspect");
+//        AOP1.0
+//        //2.将切面类按照不同的织入目标进行切分
+//        Map<Class<? extends Annotation>, List<AspectInfo>> categorizedMap = new HashMap<>();
+//        if (ValidationUtil.isEmpty(aspectSet)){return;}
+//        for (Class<?> aspectClass : aspectSet){
+//            if (varifyAspect(aspectClass)){
+//                categorizeAspect(categorizedMap,aspectClass);
+//            }else {
+//                throw new RuntimeException("@Aspect and @Order have not been added to the Aspect class," +
+//                        "or Aspect class not extend from DefaultAspect ,or the value in Aspect Tag equals @Aspect");
+//            }
+//        }
+//        //3.按照不同的织入目标分别去按序织入Aspect的逻辑
+//        if (ValidationUtil.isEmpty(categorizedMap)){return;}
+//        for (Class<? extends Annotation> categroy: categorizedMap.keySet()){
+//            weaveByCategory(categroy,categorizedMap.get(categroy));
+//        }
+
+
+
+//        AOP2.0
+        if (ValidationUtil.isEmpty(aspectSet)){
+            return;
+        }
+        //2.拼装AspectInfoList
+        List<AspectInfo> aspectInfoList = packAspectInfoList(aspectSet);
+        //3.遍历容器里的类
+        Set<Class<?>> classSet = beanContainer.getClasses();
+        for (Class targetClass : classSet){
+            //排除AspectClass自身
+            if (targetClass.isAnnotationPresent(Aspect.class)){
+                continue;
+            }
+            //4.粗筛符合条件的Aspect
+            List<AspectInfo> roughMatchedAspectList = collectRoughMatchedAspectListForSpecificClass(aspectInfoList,targetClass);
+            //5.尝试进行Aspect的织入
+            warpIfNecessary(roughMatchedAspectList,targetClass);
+        }
+    }
+
+    private void warpIfNecessary(List<AspectInfo> roughMatchedAspectList, Class targetClass) {
+
+    }
+
+    private List<AspectInfo> collectRoughMatchedAspectListForSpecificClass(List<AspectInfo> aspectInfoList, Class targetClass) {
+        List<AspectInfo> roughMatchedAspectList = new ArrayList<>();
+        for (AspectInfo aspectInfo : aspectInfoList){
+            if (aspectInfo.getPointcutLocator().roughMatches(targetClass)){
+                roughMatchedAspectList.add(aspectInfo);
             }
         }
-        //3.按照不同的织入目标分别去按序织入Aspect的逻辑
-        if (ValidationUtil.isEmpty(categorizedMap)){return;}
-        for (Class<? extends Annotation> categroy: categorizedMap.keySet()){
-            weaveByCategory(categroy,categorizedMap.get(categroy));
+        return roughMatchedAspectList;
+    }
+
+    private List<AspectInfo> packAspectInfoList(Set<Class<?>> aspectSet) {
+        List<AspectInfo> aspectInfoList = new ArrayList<>();
+        for (Class<?> aspectClass : aspectSet){
+            if (varifyAspect(aspectClass)){
+                Order orderTag = aspectClass.getAnnotation(Order.class);
+                Aspect aspectTag = aspectClass.getAnnotation(Aspect.class);
+                DefaultAspect defaultAspect = (DefaultAspect)beanContainer.getBean(aspectClass);
+                //初始化表达式定位器
+                PointcutLocator pointcutLocator = new PointcutLocator(aspectTag.pointcut());
+                AspectInfo aspectInfo = new AspectInfo(orderTag.value(),defaultAspect,pointcutLocator);
+                aspectInfoList.add(aspectInfo);
+            }else{
+                throw new RuntimeException("@Aspect and @Order must be added to the Aspect class,and Aspect class must extend from " +
+                        "DefaultAspect");
+            }
         }
+        return aspectInfoList;
     }
 
     private void weaveByCategory(Class<? extends Annotation> categroy, List<AspectInfo> aspectInfos) {

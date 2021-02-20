@@ -14,14 +14,17 @@ ApplicationContext.refresh()
 ## Postprocessor的种类
 大部分为容器级别的后置处理器以及Bean级别的后置处理器
 ### BeanDefinitionRegistryPostProcessor(容器级别)
+在BeanFactoryPostProcessor检测开始前注册BeanDefinition
 #### 实际编程
 BeanDefinitionRegistryPostProcessor
-容器初始化后，再修改Bean Definition 
+容器初始化后，再修改BeanDefinition
 #### 作用
-搜索第三方框架并加载
----
+搜索第三方框架，并加载，比如mybatis
+
 ### BeanFactoryPostProcessor(容器级别)
----
+无
+
+
 ### BeanPostProcessor(Bean级别)
 #### 作用
 增强每一个Bean
@@ -32,5 +35,9 @@ ignorexxx 忽略增强一些Bean
 ## 回归到Refresh方法()
 PostProcessorRegistrationDelegate.invokeBeanFactoryPostProcessors()
 * 设计模式 责任链模式
+
+
+##
+讲解了BeanDefinitonRegistryPostProcessor的使用,能够向容器中注册BeanDefinition
 
 

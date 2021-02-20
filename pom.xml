@@ -72,6 +72,11 @@
         </dependency>
 
 
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <version>1.9.5</version>
+        </dependency>
 
 
     </dependencies>
@@ -103,6 +108,11 @@
                     <version>2.2</version>
                     <configuration>
                         <path>/${project.artifactId}</path>
+                        <systemProperties>
+                            <java.util.logging.SimpleFormatter.format>
+                                %1$tT %3$s %5$s %n
+                            </java.util.logging.SimpleFormatter.format>
+                        </systemProperties>
                     </configuration>
                 </plugin>
 

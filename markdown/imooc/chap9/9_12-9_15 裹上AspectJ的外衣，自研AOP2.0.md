@@ -16,3 +16,8 @@ AspectJ框架的织入时机：静态织入和LTW
 * 只是默认不适用,如果想使用还是可以引入的
 * 织入机制沿用自己的cglib和jdk动态代理机制
 ## 9-13
+### 折衷方案改进框架里的AOP
+使用最小的改造成本，换取尽可能大的收益---理清核心诉求
+* pointcutParser
+* PointcutExpression
+
